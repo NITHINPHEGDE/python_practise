@@ -13,7 +13,7 @@ In simple words, you're telling SQLAlchemy:
 "Hey, this class represents a table in my PostgreSQL database."'''
 
 Base = declarative_base()
-class Products(Base):
+class Product(Base):
 
   __tablename__ = "product"
   id = Column(Integer,primary_key=True,index=True)
