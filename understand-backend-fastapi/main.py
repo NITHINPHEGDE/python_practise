@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from model import Products
-from databaseconfig import session,engine
+from databaseconfig import Session,engine
 import database_models 
 
 
@@ -55,10 +55,17 @@ products = [
   Products(id=6, name="Desk Lamp", description="LED desk lamp with brightness control", price=29.25, quantity=16),
 ]
 
+def init_db():
+  db=Session()
+  for product in products:
+    db.add(database_models.Product(**product.model_dump()))
+  db.commit()
+
+init_db()
 
 @app.get("/products")
 def get_products():
-  db=session()
+  db=Session()
   return products
 
 @app.get("/product/{id}")
