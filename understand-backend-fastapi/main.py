@@ -1,8 +1,45 @@
 from fastapi import FastAPI
 from model import Products
-from databaseconfig import session
+from databaseconfig import session,engine
+import database_models 
+
 
 app = FastAPI()
+
+database_models.Base.metadata.create_all(bind=engine)
+"""""database_models
+This refers to the Python file where you defined your database models.
+Base is the parent class of all your SQLAlchemy models.
+This is where SQLAlchemy keeps information about your database tables.
+
+For example, it knows:
+- Table name: products
+- Column: id
+- Column: name
+- Data types
+- Primary keys
+Think of metadata as a collection of information about your database structure.
+create_all()
+This tells SQLAlchemy:
+
+"Create all the tables defined in my models if they don't already exist."
+
+For example, if you have:
+class Products(Base):    __tablename__ = "products"
+
+
+SQLAlchemy creates a products table in PostgreSQL.
+
+Important: It doesn't recreate existing tables or automatically update their structure.
+
+bind=engine
+Remember your database engine?
+engine = create_engine(DATABASE_URL)
+
+
+The engine knows how to connect to PostgreSQL.
+
+bind=engine tells SQLAlchemy which database to create the tables in."""
 
 @app.get("/")
 def greet():
