@@ -1,7 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI,Depends
 from model import Products
-from databaseconfig import Session,engine
+from databaseconfig import session,engine
 import database_models 
+from sqlalchemy.orm import Session
 
 
 app = FastAPI()
@@ -55,18 +56,30 @@ products = [
   Products(id=6, name="Desk Lamp", description="LED desk lamp with brightness control", price=29.25, quantity=16),
 ]
 
+def get_db():
+  db=session()
+  try:
+    yield db   #everytime we have to make a database operation we will use this function and what yield does is it makes all the faciliteis for a query to get executed 
+  finally:
+    db.close()
+
+
 def init_db():
-  db=Session()
+  db=session()
   for product in products:
     db.add(database_models.Product(**product.model_dump()))
+    """This line takes the product data received through the FastAPI request and converts it into a format that SQLAlchemy understands. First, product.model_dump() converts the Pydantic model into a Python dictionary containing the product details. Then, ** unpacks that dictionary into individual keyword arguments, which are passed to database_models.Product() to create a SQLAlchemy object representing a database row. Finally, db.add() adds that object to the current database session, marking it for insertion into PostgreSQL. The actual transaction is committed when you call db.commit().
+
+In short: It converts API data into a database object and stages it for insertion into PostgreSQL."""
   db.commit()
 
 init_db()
 
 @app.get("/products")
-def get_products():
-  db=Session()
-  return products
+def get_products(db:Session = Depends(get_db) ):#This line tells FastAPI to automatically create a database session by executing the get_db() function and provide that session to the API endpoint through the variable db. Here, db stores the database session, Session specifies its SQLAlchemy type, and Depends(get_db) tells FastAPI to handle the creation and injection of that session automatically. Typically, get_db() uses yield to provide the session to the endpoint and finally to close it once the request is completed. This avoids manually creating and closing database sessions in every API endpoint.
+  db_products = db.query(database_models.Product).all
+  return db_products
+
 
 @app.get("/product/{id}")
 def getproductbyid(id: int):
